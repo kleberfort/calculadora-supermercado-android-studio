@@ -32,17 +32,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditProductFragment extends Fragment {
-
-
     private RecyclerView recyclerView;
     private ListaCadastroAdapter adapter;
-    private List<NomeProduto> produtos;
 
     // Nome do SharedPreferences e chave para salvar a lista
     private static final String PREFS_NAME = "my_prefs";
     private static final String LIST_KEY = "produtos_key";
 
-    private List<NomeProduto> productList;
+    private ArrayList<NomeProduto> productList;
+
+    private OnNomesListener listener;
+
+    public interface OnNomesListener {
+        void onEnviarNomes(ArrayList<NomeProduto> listaNomes);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        // Verifica se a Activity implementa a interface
+        if (context instanceof OnNomesListener) {
+            listener = (OnNomesListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " deve implementar OnNomesListener");
+        }
+    }
+
+
 
 
     @Override
@@ -52,24 +69,25 @@ public class EditProductFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_edit_product, container, false);
 
         // Inicializar a lista de produtos
-        produtos = new ArrayList<>();
+        productList = new ArrayList<>();
 
-        // Receber a lista de produtos da Bundle
-        if (getArguments() != null) {
-            productList = (List<NomeProduto>) getArguments().getSerializable("productList");
-        }
+
+
 
         // Carregar a lista de produtos do SharedPreferences
         carregarListaProdutos();
 
+
+        // Aqui você pode chamar o método da interface para passar a lista
+        if (listener != null) {
+            listener.onEnviarNomes(productList);
+        }
+
         // Configurar o RecyclerView e o Adapter
         recyclerView = view.findViewById(R.id.recycler_view_edit_product);
-        adapter = new ListaCadastroAdapter(getContext(), produtos);  // Passa a lista de produtos
+        adapter = new ListaCadastroAdapter(getContext(), productList);  // Passa a lista de produtos
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-
-
 
         // Configurar o FloatingActionButton
         FloatingActionButton fab = view.findViewById(R.id.fab_edit_product);
@@ -80,6 +98,8 @@ public class EditProductFragment extends Fragment {
 
             }
         });
+
+
 
 
         return view;
@@ -115,9 +135,29 @@ public class EditProductFragment extends Fragment {
                     // Criar um novo objeto NomeProduto com o nome capturado
                      NomeProduto novoProduto = new NomeProduto(nomeProduto);
                     // Adicionar o novo produto à lista
-                    produtos.add(novoProduto);
+                    productList.add(novoProduto);
+
+
+
+                  //  Bundle bundle = new Bundle();
+
+                    // Supondo que você tenha uma lista chamada `produtos`
+//                    ArrayList<NomeProduto> listaProdutos = new ArrayList<>(productList);
+//
+//                    bundle.putParcelableArrayList("produtos", listaProdutos);
+//                    HomeFragment homeFragment = new HomeFragment();
+//                    homeFragment.setArguments(bundle);
+
+//                    EditProductFragment editProductFragment = new EditProductFragment();
+//
+//                    // Substituir o fragmento atual pelo EditProductFragment
+//                    getParentFragmentManager().beginTransaction()
+//                            .replace(R.id.nav_host_fragment, homeFragment)
+//                            .commit();
+
+
                     // Notificar o adapter que a lista mudou
-                    adapter.notifyItemInserted(produtos.size() - 1);
+                    adapter.notifyItemInserted(productList.size() - 1);
 
                     // Salvar a lista no SharedPreferences
                     salvarListaProdutos();
@@ -148,7 +188,7 @@ public class EditProductFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         Gson gson = new Gson();
-        String json = gson.toJson(produtos);  // Converter a lista para JSON
+        String json = gson.toJson(productList);  // Converter a lista para JSON
 
         Log.d("MinhaLista", "Lista: " + json);
 
@@ -164,10 +204,10 @@ public class EditProductFragment extends Fragment {
         String json = sharedPreferences.getString(LIST_KEY, null);
 
         Type type = new TypeToken<List<NomeProduto>>() {}.getType();
-        produtos = gson.fromJson(json, type);
+        productList = gson.fromJson(json, type);
 
-        if (produtos == null) {
-            produtos = new ArrayList<>();  // Se não houver dados salvos, inicializa uma lista vazia
+        if (productList == null) {
+            productList = new ArrayList<>();  // Se não houver dados salvos, inicializa uma lista vazia
         }
     }
 

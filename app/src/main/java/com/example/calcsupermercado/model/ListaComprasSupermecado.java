@@ -1,44 +1,48 @@
 package com.example.calcsupermercado.model;
 
-public class ListaComprasSupermecado extends NomeProduto {
+import android.os.Parcel;
+import android.os.Parcelable;
 
-    private Integer qtdUnidadePruduto;
+public class ListaComprasSupermecado extends NomeProduto implements Parcelable {
+
+    private Integer qtdUnidadeProduto;
     private Double valorUnidadeProduto;
     private Double valorQdtUnidadeProduto;
-    //valor total de todos os produtos da lista
-    private Double valorQtdTotalPrudutos;
+    private Double valorQtdTotalProdutos;
 
-
-    public ListaComprasSupermecado() {
+    // Construtor
+    public ListaComprasSupermecado(String nameProduct, Integer qtdUnidadeProduto, Double valorUnidadeProduto, Double valorQdtUnidadeProduto ) {
+        super(nameProduct); // Chama o construtor da superclasse
+        this.qtdUnidadeProduto = qtdUnidadeProduto;
+        this.valorUnidadeProduto = valorUnidadeProduto;
+        this.valorQdtUnidadeProduto = calcularValorQdtUnidadeProduto(); // Supondo que você tenha um método para calcular
+        this.valorQtdTotalProdutos = calcularValorQtdTotalProdutos(); // Supondo que você tenha um método para calcular
     }
 
-    public ListaComprasSupermecado(String nameProduct, Integer qtdUnidadePruduto, Double valorUnidadeProduto, Double valorQdtUnidadeProduto, Double valorQtdTotalPrudutos) {
+    public ListaComprasSupermecado(String nameProduct, Integer qtdUnidadeProduto, Double valorUnidadeProduto, Double valorQdtUnidadeProduto, Double valorQtdTotalProdutos) {
         super(nameProduct);
-        this.qtdUnidadePruduto = qtdUnidadePruduto;
+        this.qtdUnidadeProduto = qtdUnidadeProduto;
         this.valorUnidadeProduto = valorUnidadeProduto;
         this.valorQdtUnidadeProduto = valorQdtUnidadeProduto;
-        this.valorQtdTotalPrudutos = valorQtdTotalPrudutos;
+        this.valorQtdTotalProdutos = valorQtdTotalProdutos;
     }
 
-    public ListaComprasSupermecado(Integer qtdUnidadePruduto, Double valorUnidadeProduto, Double valorQdtUnidadeProduto) {
-        this.qtdUnidadePruduto = qtdUnidadePruduto;
-        this.valorUnidadeProduto = valorUnidadeProduto;
-        this.valorQdtUnidadeProduto = valorQdtUnidadeProduto;
+    // Métodos de cálculo (caso você queira implementar)
+    private Double calcularValorQdtUnidadeProduto() {
+        return valorUnidadeProduto * qtdUnidadeProduto;
     }
 
-    public ListaComprasSupermecado(String nameProduct, Integer qtdUnidadePruduto, Double valorUnidadeProduto, Double valorQdtUnidadeProduto) {
-        super(nameProduct);
-        this.qtdUnidadePruduto = qtdUnidadePruduto;
-        this.valorUnidadeProduto = valorUnidadeProduto;
-        this.valorQdtUnidadeProduto = valorQdtUnidadeProduto;
+    private Double calcularValorQtdTotalProdutos() {
+        return valorQdtUnidadeProduto; // Ajuste conforme necessário
     }
 
-    public Integer getQtdUnidadePruduto() {
-        return qtdUnidadePruduto;
+    // Getters e Setters
+    public Integer getQtdUnidadeProduto() {
+        return qtdUnidadeProduto;
     }
 
-    public void setQtdUnidadePruduto(Integer qtdUnidadePruduto) {
-        this.qtdUnidadePruduto = qtdUnidadePruduto;
+    public void setQtdUnidadeProduto(Integer qtdUnidadeProduto) {
+        this.qtdUnidadeProduto = qtdUnidadeProduto;
     }
 
     public Double getValorUnidadeProduto() {
@@ -47,21 +51,50 @@ public class ListaComprasSupermecado extends NomeProduto {
 
     public void setValorUnidadeProduto(Double valorUnidadeProduto) {
         this.valorUnidadeProduto = valorUnidadeProduto;
+        this.valorQdtUnidadeProduto = calcularValorQdtUnidadeProduto(); // Atualiza ao modificar
     }
 
     public Double getValorQdtUnidadeProduto() {
         return valorQdtUnidadeProduto;
     }
 
-    public void setValorQdtUnidadeProduto(Double valorQdtUnidadeProduto) {
-        this.valorQdtUnidadeProduto = valorQdtUnidadeProduto;
+    public Double getValorQtdTotalProdutos() {
+        return valorQtdTotalProdutos;
     }
 
-    public Double getValorQtdTotalPrudutos() {
-        return valorQtdTotalPrudutos;
+    // Métodos para implementar Parcelable
+    protected ListaComprasSupermecado(Parcel in) {
+        super(in.readString()); // Chama o construtor da superclasse
+        qtdUnidadeProduto = (Integer) in.readValue(Integer.class.getClassLoader());
+        valorUnidadeProduto = in.readDouble();
+        valorQdtUnidadeProduto = in.readDouble();
+        valorQtdTotalProdutos = in.readDouble();
     }
 
-    public void setValorQtdTotalPrudutos(Double valorQtdTotalPrudutos) {
-        this.valorQtdTotalPrudutos = valorQtdTotalPrudutos;
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(getNameProduct()); // Escreve o nome do produto
+        dest.writeValue(qtdUnidadeProduto);
+        dest.writeDouble(valorUnidadeProduto);
+        dest.writeDouble(valorQdtUnidadeProduto);
+        dest.writeDouble(valorQtdTotalProdutos);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<ListaComprasSupermecado> CREATOR = new Creator<ListaComprasSupermecado>() {
+        @Override
+        public ListaComprasSupermecado createFromParcel(Parcel in) {
+            return new ListaComprasSupermecado(in);
+        }
+
+        @Override
+        public ListaComprasSupermecado[] newArray(int size) {
+            return new ListaComprasSupermecado[size];
+        }
+    };
 }
+

@@ -1,18 +1,18 @@
 package com.example.calcsupermercado.fragment;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,10 +23,16 @@ import com.example.calcsupermercado.model.ListaComprasSupermecado;
 import com.example.calcsupermercado.model.NomeProduto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import android.os.Handler;
+import android.os.Looper;
 
-public class HomeFragment extends Fragment   {
+
+public class HomeFragment extends Fragment    {
+
+    private FragmentHomeBinding binding;
 
     private String nomeProduto;
     private Integer quantidadeProtudo = 0;
@@ -34,121 +40,47 @@ public class HomeFragment extends Fragment   {
     private double valorQdtProduto = 0.0;
     private double valorQtdTotalPrudutos = 0.0;
 
-    private FragmentHomeBinding binding;
     private List<ListaComprasSupermecado> produtos = new ArrayList<>(); // Inicializando a lista de produtos
     private ProdutoAdapter produtoAdapter; // Adapter para o RecyclerView
 
 
-    List<NomeProduto> productList = new ArrayList<>(); // Lista de produtos para o Spinner
+    private ArrayList<NomeProduto> productList = new ArrayList<NomeProduto>();
+
+    ArrayList<String> listaSpiner;
 
 
-    public interface OnProductListPass {
-        void onProductListPass(List<NomeProduto> productList);
-    }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflando o layout usando DataBinding
         binding = FragmentHomeBinding.inflate(inflater, container, false);
 
-            productList = new ArrayList<>();
+        listaSpiner = new ArrayList<>();
 
-        NomeProduto nomeProduto1 = new NomeProduto("Arroz");
-        NomeProduto nomeProduto = new NomeProduto("Farinha");
-
-        productList.add(nomeProduto1);
-        productList.add(nomeProduto);
-
-
-            if (productList != null && !productList.isEmpty()) {
-                // Crie o ArrayAdapter personalizado
-                ArrayAdapter<NomeProduto> adapter = new ArrayAdapter<NomeProduto>(
-                        getContext(),
-                        android.R.layout.simple_spinner_item,
-                        productList
-                ) {
-                    @Override
-                    public View getView(int position, View convertView, ViewGroup parent) {
-                        // Exibir o nome do produto no Spinner (exibição atual)
-                        TextView label = (TextView) super.getView(position, convertView, parent);
-                        label.setText(productList.get(position).getNameProduct());
-                        return label;
-                    }
-
-                    @Override
-                    public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                        // Exibir o nome do produto no dropdown do Spinner
-                        TextView label = (TextView) super.getDropDownView(position, convertView, parent);
-                        label.setText(productList.get(position).getNameProduct());
-                        return label;
-                    }
-                };
-
-
-                // Definir o layout da lista suspensa
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-                // Vincular o adaptador ao Spinner
-                binding.spinnerProducts.setAdapter(adapter);
-
+        if (getArguments() != null) {
+            productList = getArguments().getParcelableArrayList("listaProdutos");
+            Log.d("BundleCheck", "Product list size: " + (productList != null ? productList.size() : "null"));
         }
 
-        // Configurar o RecyclerView
-        RecyclerView recyclerView = binding.rvListaProdutos; // Certifique-se de que o RecyclerView está no seu layout
-        produtoAdapter = new ProdutoAdapter(produtos);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(produtoAdapter);
 
-        // Verifique se productList está preenchido com dados
+////            // Adicionar itens à lista do Spinner
         if (productList != null && !productList.isEmpty()) {
-            // Crie o ArrayAdapter personalizado
-            ArrayAdapter<NomeProduto> adapter = new ArrayAdapter<NomeProduto>(
-                    getContext(),
-                    android.R.layout.simple_spinner_item,
-                    productList
-            ) {
-                @Override
-                public View getView(int position, View convertView, ViewGroup parent) {
-                    // Exibir o nome do produto no Spinner (exibição atual)
-                    TextView label = (TextView) super.getView(position, convertView, parent);
-                    label.setText(productList.get(position).getNameProduct());
-                    return label;
+            for (NomeProduto produto : productList) {
+                String nomeProduto = produto.getNameProduct();
+                if (nomeProduto != null) {
+                    listaSpiner.add(nomeProduto);
+                    Log.d("Spinner", "Produto adicionado: " + nomeProduto);
                 }
-
-                @Override
-                public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                    // Exibir o nome do produto no dropdown do Spinner
-                    TextView label = (TextView) super.getDropDownView(position, convertView, parent);
-                    label.setText(productList.get(position).getNameProduct());
-                    return label;
-                }
-            };
-
-
-            // Definir o layout da lista suspensa
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-            // Vincular o adaptador ao Spinner
-            binding.spinnerProducts.setAdapter(adapter);
-
-            binding.spinnerProducts.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                    // Obtenha o objeto selecionado do Spinner
-                    NomeProduto produtoSelecionado = (NomeProduto) parentView.getItemAtPosition(position);
-                   // Log.d("nomeProduto", nomeProduto);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parentView) {
-                    // Aqui você pode tratar o caso em que nada é selecionado, se necessário
-                }
-            });
-
-        }else{
-            Log.e("Spinner", "A lista de produtos está vazia ou nula.");
+            }
         }
 
+// Certifique-se de que o adapter está sendo atualizado corretamente.
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listaSpiner);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerNomes.setAdapter(adapter);
+        adapter.notifyDataSetChanged();  // Chame depois de vincular o adapter.
 
         binding.editTextQuantity.addTextChangedListener(new TextWatcher() {
             @Override
@@ -228,12 +160,15 @@ public class HomeFragment extends Fragment   {
 
             }
         });
-
-
-
         // Configurar o botão de adicionar
         binding.buttonAdd.setOnClickListener(v -> adicionarProduto());
 
+
+        // Configurar o RecyclerView
+        RecyclerView recyclerView = binding.rvListaProdutos; // Certifique-se de que o RecyclerView está no seu layout
+        produtoAdapter = new ProdutoAdapter(produtos);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(produtoAdapter);
 
 
         // Retornando a raiz do layout

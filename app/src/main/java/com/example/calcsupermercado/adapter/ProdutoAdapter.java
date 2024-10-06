@@ -40,7 +40,7 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
 
         // Configura os valores dos TextView com os dados do produto
         holder.textViewNomeProduto.setText(ListaComprasSupermecado.getNameProduct());
-        holder.textViewQuantidade.setText(String.valueOf(ListaComprasSupermecado.getQtdUnidadePruduto()));
+        holder.textViewQuantidade.setText(String.valueOf(ListaComprasSupermecado.getQtdUnidadeProduto()));
         holder.textViewValorUnidade.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorUnidadeProduto()));
         holder.textViewTotal.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorQdtUnidadeProduto()));
     }
