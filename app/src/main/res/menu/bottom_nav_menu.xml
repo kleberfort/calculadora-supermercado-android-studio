@@ -8,6 +8,6 @@
     <item
         android:id="@+id/navigation_edit_product"
         android:icon="@drawable/edit_add_24"
-        android:title="Cadastro de Produto" />
+        android:title="Cadastrar" />
 
 </menu>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#F4DEF4" /> <!-- Cor de fundo roxo claro #D8BFD8-->
+
+    <stroke
+        android:width="2dp"
+        android:color="#130D15" /> <!-- Cor da borda roxa -->
+
+    <corners android:radius="4dp" /> <!-- Bordas arredondadas -->
+</shape>

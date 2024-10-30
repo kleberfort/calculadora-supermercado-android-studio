@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -18,22 +17,28 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.calcsupermercado.MinhaListaProdutos;
 import com.example.calcsupermercado.R;
 import com.example.calcsupermercado.adapter.ListaCadastroAdapter;
+import com.example.calcsupermercado.databinding.FragmentEditProductBinding;
 import com.example.calcsupermercado.model.NomeProduto;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EditProductFragment extends Fragment {
+
+    private FragmentEditProductBinding binding;
+
+
     private RecyclerView recyclerView;
     private ListaCadastroAdapter adapter;
+
+
 
     // Nome do SharedPreferences e chave para salvar a lista
     private static final String PREFS_NAME = "my_prefs";
@@ -60,8 +65,6 @@ public class EditProductFragment extends Fragment {
     }
 
 
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -71,23 +74,24 @@ public class EditProductFragment extends Fragment {
         // Inicializar a lista de produtos
         productList = new ArrayList<>();
 
-
-
-
         // Carregar a lista de produtos do SharedPreferences
         carregarListaProdutos();
-
 
         // Aqui você pode chamar o método da interface para passar a lista
         if (listener != null) {
             listener.onEnviarNomes(productList);
         }
 
+        //Collections.sort(productList);
+
         // Configurar o RecyclerView e o Adapter
         recyclerView = view.findViewById(R.id.recycler_view_edit_product);
-        adapter = new ListaCadastroAdapter(getContext(), productList);  // Passa a lista de produtos
+        adapter = new ListaCadastroAdapter(getContext(), productList,
+                this::showEditProductDialog, this::showDeleteConfirmationDialog);  // Passa o clique longo para deletar
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+
 
         // Configurar o FloatingActionButton
         FloatingActionButton fab = view.findViewById(R.id.fab_edit_product);
@@ -99,14 +103,74 @@ public class EditProductFragment extends Fragment {
             }
         });
 
-
-
-
         return view;
     }
 
+    // Método para abrir o dialog de editar produto
+    private void showEditProductDialog(int position) {
+        NomeProduto product = productList.get(position);
+
+        // Inflar o layout do dialog
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View dialogView = inflater.inflate(R.layout.dialog_add_product, null);
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+        dialogBuilder.setView(dialogView);
+
+        // Referências ao EditText para editar o produto
+        EditText productNameInput = dialogView.findViewById(R.id.edit_text_product_name);
+        productNameInput.setText(product.getNameProduct());
+
+        // Configurar os botões do dialog
+        dialogBuilder.setTitle("Editar Produto");
+        dialogBuilder.setPositiveButton("Salvar", (dialog, which) -> {
+            String novoNome = productNameInput.getText().toString().trim();
+
+            if (!novoNome.isEmpty()) {
+                novoNome = novoNome.substring(0, 1).toUpperCase() + novoNome.substring(1).toLowerCase();
+
+                // Atualizar o produto
+                product.setNameProduct(novoNome);
+                adapter.notifyItemChanged(position);
+
+                // Salvar a lista de produtos atualizada
+                salvarListaProdutos();
+
+                Toast.makeText(getContext(), "Produto atualizado com sucesso!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "O nome do produto não pode estar vazio!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialogBuilder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+
+        // Mostrar o dialog
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.show();
+    }
 
 
+    // Método para mostrar o diálogo de confirmação de exclusão
+    private void showDeleteConfirmationDialog(int position) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Excluir Produto")
+                .setMessage("Tem certeza de que deseja excluir este produto?")
+                .setPositiveButton("Excluir", (dialog, which) -> {
+                    // Remover o produto da lista
+                    productList.remove(position);
+
+                    // Notificar o adapter sobre a remoção
+                    adapter.notifyItemRemoved(position);
+
+                    // Salvar a lista de produtos atualizada
+                    salvarListaProdutos();
+
+                    Toast.makeText(getContext(), "Produto excluído", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
 
     // Método para abrir o dialog de adicionar produto
     private void showAddProductDialog() {
@@ -136,28 +200,30 @@ public class EditProductFragment extends Fragment {
                      NomeProduto novoProduto = new NomeProduto(nomeProduto);
                     // Adicionar o novo produto à lista
                     productList.add(novoProduto);
-
-
-
-                  //  Bundle bundle = new Bundle();
-
-                    // Supondo que você tenha uma lista chamada `produtos`
-//                    ArrayList<NomeProduto> listaProdutos = new ArrayList<>(productList);
-//
-//                    bundle.putParcelableArrayList("produtos", listaProdutos);
-//                    HomeFragment homeFragment = new HomeFragment();
-//                    homeFragment.setArguments(bundle);
-
-//                    EditProductFragment editProductFragment = new EditProductFragment();
-//
-//                    // Substituir o fragmento atual pelo EditProductFragment
-//                    getParentFragmentManager().beginTransaction()
-//                            .replace(R.id.nav_host_fragment, homeFragment)
-//                            .commit();
-
-
                     // Notificar o adapter que a lista mudou
                     adapter.notifyItemInserted(productList.size() - 1);
+                    recyclerView.setAdapter(adapter);
+
+                    Collections.sort(productList); // Ordena a lista após adicionar o produto
+                    int posicao = 0;
+
+
+
+                    for (int i = 0; i <productList.size(); i++) {
+
+                        if(nomeProduto == productList.get(i).getNameProduct()){
+                            posicao = i;
+                            break;
+                        }
+
+                    }
+                    // Desloca o RecyclerView para a posição do novo item
+                    recyclerView.scrollToPosition(posicao);
+
+
+
+
+
 
                     // Salvar a lista no SharedPreferences
                     salvarListaProdutos();

@@ -15,36 +15,49 @@ import java.util.List;
 
 public class ListaCadastroAdapter extends RecyclerView.Adapter<ListaCadastroAdapter.ViewHolder> {
 
-    private List<NomeProduto> produtos;
-    private LayoutInflater layoutInflater;
+    private Context context;
+    private List<NomeProduto> productList;
+    private OnItemClickListener onItemClickListener;
+    private OnItemLongClickListener onItemLongClickListener;
 
-    // Construtor para o Adapter
-    public ListaCadastroAdapter(Context context, List<NomeProduto> produtos) {
-        this.produtos = produtos;
-        this.layoutInflater = LayoutInflater.from(context);
+    // Interface para cliques
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    // Interface para clique longo
+    public interface OnItemLongClickListener {
+        void onItemLongClick(int position);
+    }
+
+    public ListaCadastroAdapter(Context context, List<NomeProduto> productList,
+                                OnItemClickListener onItemClickListener,
+                                OnItemLongClickListener onItemLongClickListener) {
+        this.context = context;
+        this.productList = productList;
+        this.onItemClickListener = onItemClickListener;
+        this.onItemLongClickListener = onItemLongClickListener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflar o layout do item para o RecyclerView
-        View view = layoutInflater.inflate(R.layout.cadastro_produto, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.cadastro_produto, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Obter o produto da lista com base na posição
-        NomeProduto produto = produtos.get(position);
+        NomeProduto product = productList.get(position);
 
-        // Atribuir o nome do produto ao TextView
-        holder.nomeProdutoTextView.setText(produto.getNameProduct());
+        holder.bind(product, position, onItemClickListener, onItemLongClickListener);
     }
 
     @Override
     public int getItemCount() {
         // Retorna o tamanho da lista de produtos
-        return produtos.size();
+        return productList.size();
     }
 
     // Classe ViewHolder que referencia as Views do layout do item
@@ -55,6 +68,19 @@ public class ListaCadastroAdapter extends RecyclerView.Adapter<ListaCadastroAdap
             super(itemView);
             // Referenciar o TextView do layout item_cadastro_produto.xml
             nomeProdutoTextView = itemView.findViewById(R.id.tv_nome_produto);
+        }
+
+        public void bind(NomeProduto product, int position, OnItemClickListener clickListener,
+                         OnItemLongClickListener longClickListener) {
+            nomeProdutoTextView.setText(product.getNameProduct());
+
+            itemView.setOnClickListener(v -> clickListener.onItemClick(position));
+
+            // Detectar clique longo
+            itemView.setOnLongClickListener(v -> {
+                longClickListener.onItemLongClick(position);
+                return true;
+            });
         }
     }
 

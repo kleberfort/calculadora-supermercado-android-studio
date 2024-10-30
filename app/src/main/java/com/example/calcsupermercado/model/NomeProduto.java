@@ -5,12 +5,12 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
-import java.io.Serializable;
-
-import android.os.Parcel;
-import android.os.Parcelable;
-
-public class NomeProduto implements Parcelable {
+public class NomeProduto implements Parcelable, Comparable<NomeProduto>{
+    @Override
+    public int compareTo(NomeProduto outroProduto) {
+        // Comparando os nomes dos produtos em ordem alfabética
+        return this.nameProduct.compareTo(outroProduto.getNameProduct());
+    }
 
     private String nameProduct;
 
@@ -60,4 +60,3 @@ public class NomeProduto implements Parcelable {
         return nameProduct; // Retorna o nome do produto
     }
 }
-

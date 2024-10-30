@@ -12,15 +12,37 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.calcsupermercado.R;
 import com.example.calcsupermercado.model.ListaComprasSupermecado;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 // Adapter para o RecyclerView
 public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoViewHolder> {
 
-
+    private Context context;
     private List<ListaComprasSupermecado> listaProdutos;
+    private ListaCadastroAdapter.OnItemClickListener onItemClickListener;
+    private ListaCadastroAdapter.OnItemLongClickListener onItemLongClickListener;
 
-    // Construtor do Adapter
+
+    // Interface para cliques
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    // Interface para clique longo
+    public interface OnItemLongClickListener {
+        void onItemLongClick(int position);
+    }
+
+    public ProdutoAdapter(Context context, List<ListaComprasSupermecado> listaProdutos, ListaCadastroAdapter.OnItemClickListener onItemClickListener, ListaCadastroAdapter.OnItemLongClickListener onItemLongClickListener) {
+        this.context = context;
+        this.listaProdutos = listaProdutos;
+        this.onItemClickListener = onItemClickListener;
+        this.onItemLongClickListener = onItemLongClickListener;
+    }
+
+     //Construtor do Adapter
     public ProdutoAdapter( List<ListaComprasSupermecado> listaProdutos) {
         this.listaProdutos = listaProdutos;
     }
@@ -38,11 +60,20 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
         // Obtém o produto da lista
         ListaComprasSupermecado ListaComprasSupermecado = listaProdutos.get(position);
 
+
+
         // Configura os valores dos TextView com os dados do produto
         holder.textViewNomeProduto.setText(ListaComprasSupermecado.getNameProduct());
-        holder.textViewQuantidade.setText(String.valueOf(ListaComprasSupermecado.getQtdUnidadeProduto()));
+        holder.textViewQuantidade.setText(String.format(Locale.US,"%.2f",ListaComprasSupermecado.getQtdUnidadeProduto()));
         holder.textViewValorUnidade.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorUnidadeProduto()));
-        holder.textViewTotal.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorQdtUnidadeProduto()));
+        holder.textViewTotal.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorQdtxUndProduto()));
+
+
+
+
+
+        holder.bind(ListaComprasSupermecado, position, onItemClickListener, onItemLongClickListener);
+
     }
 
     @Override
@@ -54,10 +85,9 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
         //listaProdutos.add(produto);
         notifyItemInserted(listaProdutos.size() - 1); // Notifica que um novo item foi inserido
 
-
-
-
     }
+
+
 
     // Classe ViewHolder para associar os componentes do layout com o Adapter
     public static class ProdutoViewHolder extends RecyclerView.ViewHolder {
@@ -77,8 +107,24 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
             textViewNomeProduto = itemView.findViewById(R.id.textViewNomeProduto);
             textViewQuantidade = itemView.findViewById(R.id.textViewQuantidade);
             textViewValorUnidade = itemView.findViewById(R.id.textViewValorUnidade);
-            textViewTotal = itemView.findViewById(R.id.textViewTotal);
+            textViewTotal = itemView.findViewById(R.id.tvQtdvezesUndTotal);
             textViewValorTotal = itemView.findViewById(R.id.textViewTotalValue);
         }
+
+        public void bind(ListaComprasSupermecado listaComprasSupermecado, int position, ListaCadastroAdapter.OnItemClickListener clickListener,
+                         ListaCadastroAdapter.OnItemLongClickListener longClickListener) {
+           // textViewQuantidade.setText(listaComprasSupermecado.getQtdUnidadeProduto().toString());
+
+            //textViewQuantidade.setText(listaComprasSupermecado.getQtdUnidadeProduto().toString());
+
+            itemView.setOnClickListener(v -> clickListener.onItemClick(position));
+
+            // Detectar clique longo
+            itemView.setOnLongClickListener(v -> {
+                longClickListener.onItemLongClick(position);
+                return true;
+            });
+        }
+
     }
 }

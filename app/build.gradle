@@ -16,6 +16,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
     buildTypes {
         release {
             minifyEnabled false
@@ -28,6 +29,10 @@ android {
     }
     buildFeatures {
         viewBinding true
+    }
+    // Adicione o flag de aviso de depreciação
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
     }
 
 
