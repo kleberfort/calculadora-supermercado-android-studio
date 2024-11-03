@@ -54,6 +54,12 @@ public class ListaCadastroAdapter extends RecyclerView.Adapter<ListaCadastroAdap
         holder.bind(product, position, onItemClickListener, onItemLongClickListener);
     }
 
+    // Método para atualizar a lista filtrada
+    public void updateList(List<NomeProduto> newList) {
+        productList = newList;
+        notifyDataSetChanged(); // Atualiza o RecyclerView
+    }
+
     @Override
     public int getItemCount() {
         // Retorna o tamanho da lista de produtos
