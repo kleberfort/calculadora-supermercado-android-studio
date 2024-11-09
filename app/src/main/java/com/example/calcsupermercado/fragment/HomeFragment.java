@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -68,7 +69,10 @@ public class HomeFragment extends Fragment    {
     private List<ListaComprasSupermecado> produtos = new ArrayList<>(); // Inicializando a lista de produtos
     private ProdutoAdapter produtoAdapter; // Adapter para o RecyclerView
 
-    private ArrayList<NomeProduto> productList = new ArrayList<NomeProduto>();
+
+    private HashMap<String, ArrayList<NomeProduto>> categoryMap;
+
+   // private ArrayList<NomeProduto> productList = new ArrayList<NomeProduto>();
     ArrayList<String> listaSpiner;
 
     private static final String PREFS_NAME = "my_preferences";
@@ -85,33 +89,79 @@ public class HomeFragment extends Fragment    {
 
         // Recuperar lista de produtos do SharedPreferences
         recuperarProdutos();
-
         listaSpiner = new ArrayList<>();
 
+        // Receber o HashMap ou a lista de produtos que foi passada para o fragmento
         if (getArguments() != null) {
-            productList = getArguments().getParcelableArrayList("listaProdutos");
-            Log.d("BundleCheck", "Product list size: " + (productList != null ? productList.size() : "null"));
-        }
-
-
-////            // Adicionar itens à lista do Spinner
-        if (productList != null && !productList.isEmpty()) {
-            for (NomeProduto produto : productList) {
-                String nomeProduto = produto.getNameProduct();
-                if (nomeProduto != null) {
-                    listaSpiner.add(nomeProduto);
-                    Log.d("Spinner", "Produto adicionado: " + nomeProduto);
-                }
+            if (getArguments().containsKey("categoryMap")) {
+                categoryMap = (HashMap<String, ArrayList<NomeProduto>>) getArguments().getSerializable("categoryMap");
+                // Adicionar nomes das categorias no listaSpiner
+                listaSpiner.addAll(categoryMap.keySet());
+            } else if (getArguments().containsKey("listaProdutos")) {
+               // listaProdutos = getArguments().getParcelableArrayList("listaProdutos");
             }
         }
 
+
         Collections.sort(listaSpiner);
 
-        // Certifique-se de que o adapter está sendo atualizado corretamente.
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.test_list_item, listaSpiner);
+        // Adicionar "Selecione a categoria" como o primeiro item do Spinner
+        listaSpiner.add(0, "Selecione a categoria");
+
+// Configurar o ArrayAdapter inicial para exibir "Selecione a categoria" e as categorias no Spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listaSpiner);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.spinnerNomes.setAdapter(adapter);
-        adapter.notifyDataSetChanged();  // Chame depois de vincular o adapter.
+
+// Listener para seleção de itens do Spinner
+        binding.spinnerNomes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedText = listaSpiner.get(position);
+
+                if (selectedText.equals("Selecione a categoria")) {
+                    // Se o usuário selecionou "Selecione a categoria", não fazer nada
+                    return;
+                }
+
+                if (selectedText.equals("Voltar para a lista de categorias")) {
+                    // Se o usuário selecionou "Voltar para a lista de categorias"
+                    // Limpar lista e recarregar as categorias no Spinner
+                    listaSpiner.clear();
+                    listaSpiner.add(0, "Selecione a categoria");  // Adiciona "Selecione a categoria" como o primeiro item
+                    listaSpiner.addAll(categoryMap.keySet());      // Adiciona todas as categorias do categoryMap
+
+                    // Notificar o adapter para atualizar o Spinner com a lista de categorias
+                    adapter.notifyDataSetChanged();
+
+                    // Define a seleção no item "Selecione a categoria" para evitar re-executar o listener imediatamente
+                    binding.spinnerNomes.setSelection(0);
+                } else {
+                    // Carregar os produtos da categoria selecionada
+                    ArrayList<NomeProduto> produtosCategoria = categoryMap.get(selectedText);
+
+                    if (produtosCategoria != null && !produtosCategoria.isEmpty()) {
+                        // Limpar a lista do Spinner e adicionar "Voltar para a lista de categorias" como o primeiro item
+                        listaSpiner.clear();
+                        listaSpiner.add(0, "Voltar para a lista de categorias");
+
+                        // Adicionar os produtos da categoria
+                        for (NomeProduto produto : produtosCategoria) {
+                            listaSpiner.add(produto.getNameProduct());  // Assumindo que NomeProduto tem um método getNome()
+                        }
+
+                        // Notificar o adapter para atualizar o Spinner com os itens da categoria
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Nenhuma ação necessária aqui
+            }
+        });
+
 
         // Botão de ordenação ao lado do Spinner
         binding.btnSort.setOnClickListener(v -> {
@@ -124,25 +174,6 @@ public class HomeFragment extends Fragment    {
             }
             isAscending = !isAscending;  // Alterna entre A-Z e Z-A
             adapter.notifyDataSetChanged();  // Atualiza o Spinner
-        });
-
-        binding.spinnerNomes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Recupera o item selecionado e o coloca na variável nomeProduto
-                nomeProduto = parent.getItemAtPosition(position).toString();
-
-                // Agora você pode usar a variável nomeProduto como desejar
-                 Log.d("SpinnerSelection", "Item selecionado: " + nomeProduto);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Ação quando nada é selecionado (opcional)
-
-                Toast.makeText(getContext(), "Mensagem do Toast", Toast.LENGTH_SHORT).show();
-              //  Log.d("SpinnerSelection", "Item selecionado: " + nomeProduto);
-            }
         });
 
 

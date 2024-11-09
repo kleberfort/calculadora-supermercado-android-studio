@@ -15,11 +15,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements EditProductFragment.OnNomesListener {
 
-    ArrayList<NomeProduto> minhaLista = new ArrayList<>();
+    // Lista que você quer passar para o HomeFragment
+    private ArrayList<NomeProduto> minhaLista = new ArrayList<>();
+    private HashMap<String, ArrayList<NomeProduto>> categoryMap; // Para armazenar o HashMap
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements EditProductFragme
                     .commit();
         }
 
-// Configurar o listener para troca de fragmentos
+        // Configurar o listener para troca de fragmentos
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -45,19 +48,23 @@ public class MainActivity extends AppCompatActivity implements EditProductFragme
                 int id = item.getItemId();
 
                 if (id == R.id.navigation_home) {
+                    // Cria o HomeFragment
                     selectedFragment = new HomeFragment();
 
-                    // Passar a lista para o HomeFragment
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelableArrayList("listaProdutos", minhaLista);
-                    // Criar uma instância do HomeFragment e passar os argumentos
-                    HomeFragment homeFragment = new HomeFragment();
-                    homeFragment.setArguments(bundle);
-
-                    // Realizar a transição para o HomeFragment
-                    selectedFragment = homeFragment;
-
+                    // Verifica se já recebeu o categoryMap ou a lista de produtos
+                    if (categoryMap != null) {
+                        // Passa o categoryMap para o HomeFragment
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("categoryMap", categoryMap); // Passa o HashMap
+                        selectedFragment.setArguments(bundle);
+                    } else {
+                        // Caso não tenha o categoryMap, passa a minhaLista, ou outra estrutura
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelableArrayList("listaProdutos", minhaLista); // Passa a lista
+                        selectedFragment.setArguments(bundle);
+                    }
                 } else if (id == R.id.navigation_edit_product) {
+                    // Se for para o fragmento de edição, apenas troca para o EditProductFragment
                     selectedFragment = new EditProductFragment();
                 }
 
@@ -73,12 +80,9 @@ public class MainActivity extends AppCompatActivity implements EditProductFragme
     }
 
 
-    // Implementação da interface que recebe a lista de nomes
     @Override
-    public void onEnviarNomes(ArrayList<NomeProduto> listaNomes) {
-
-        minhaLista = listaNomes;
-
+    public void onEnviarCategorias(HashMap<String, ArrayList<NomeProduto>> categoryMap) {
+        // Salva o categoryMap para que ele possa ser passado para o HomeFragment
+        this.categoryMap = categoryMap;
     }
-
 }
