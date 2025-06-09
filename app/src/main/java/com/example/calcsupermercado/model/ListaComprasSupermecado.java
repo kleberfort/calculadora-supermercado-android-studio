@@ -72,6 +72,22 @@ public class ListaComprasSupermecado extends NomeProduto implements Parcelable {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        ListaComprasSupermecado that = (ListaComprasSupermecado) obj;
+
+        // Compara usando o nome do produto (ignorando maiúsculas/minúsculas)
+        return getNameProduct() != null && getNameProduct().equalsIgnoreCase(that.getNameProduct());
+    }
+
+    @Override
+    public int hashCode() {
+        return getNameProduct() != null ? getNameProduct().toLowerCase().hashCode() : 0;
+    }
+
+    @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(getNameProduct()); // Escreve o nome do produto
         dest.writeValue(qtdProduto);
@@ -96,4 +112,6 @@ public class ListaComprasSupermecado extends NomeProduto implements Parcelable {
             return new ListaComprasSupermecado[size];
         }
     };
+
+
 }

@@ -78,80 +78,98 @@
     <!-- Botão Adicionar -->
 
     <LinearLayout
-        android:id="@+id/nomeMenu"
+        android:id="@+id/linearLayoutcategoria"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginTop="4dp"
-        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/headerMenu">
 
-
+        <!-- Spinner de Categoria -->
         <Spinner
-            android:id="@+id/spinner_nomes"
-            android:layout_width="34dp"
-            android:layout_height="35dp"
-            android:layout_weight="3"
+            android:id="@+id/spinner_categoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:textStyle="bold"
             android:visibility="visible" />
 
-        <ImageView
-            android:id="@+id/btn_sort"
-            android:layout_width="wrap_content"
+        <!-- LinearLayout existente -->
+        <LinearLayout
+            android:id="@+id/nomeMenu"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.3"
-            android:contentDescription="Ordenar"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:src="@drawable/sort_by_alpha_24px" />
+            android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/editTextQuantity"
-            android:layout_width="28dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:gravity="center"
-            android:hint="Quant.\n ou Peso"
-            android:inputType="numberDecimal"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            <Spinner
+                android:id="@+id/spinner_nomes"
+                android:layout_width="34dp"
+                android:layout_height="35dp"
+                android:layout_weight="3"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:visibility="visible" />
 
-        <EditText
-            android:id="@+id/editTextUnitValue"
-            android:layout_width="31dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:gravity="center"
-            android:hint="Valor\n Und ou Kg"
-            android:inputType="numberDecimal"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/btn_sort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.3"
+                android:contentDescription="Ordenar"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:src="@drawable/sort_by_alpha_24px" />
 
-        <TextView
-            android:id="@+id/textViewTotalValue"
-            android:layout_width="25dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:gravity="center"
-            android:padding="2dp"
-            android:text="Total"
-            android:textColor="@android:color/holo_green_dark"
-            android:textStyle="bold" />
+            <EditText
+                android:id="@+id/editTextQuantity"
+                android:layout_width="28dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:hint="Quant.\n ou Peso"
+                android:inputType="numberDecimal"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/editTextUnitValue"
+                android:layout_width="31dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:hint="Valor\n Und ou Kg"
+                android:inputType="numberDecimal"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textViewTotalValue"
+                android:layout_width="25dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:padding="2dp"
+                android:text="Total"
+                android:textColor="@android:color/holo_green_dark"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
     </LinearLayout>
+
 
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="96dp"
+        android:layout_marginTop="120dp"
         android:layout_marginBottom="70dp"
         app:layout_constraintBottom_toTopOf="@+id/tvQantidadeProdutos"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nomeMenu">
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutcategoria">
 
 
         <androidx.recyclerview.widget.RecyclerView

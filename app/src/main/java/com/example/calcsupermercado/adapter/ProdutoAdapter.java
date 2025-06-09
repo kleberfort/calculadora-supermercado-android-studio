@@ -60,22 +60,15 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
         // Obtém o produto da lista
         ListaComprasSupermecado ListaComprasSupermecado = listaProdutos.get(position);
 
-
-
         // Configura os valores dos TextView com os dados do produto
         holder.textViewNomeProduto.setText(ListaComprasSupermecado.getNameProduct());
         holder.textViewQuantidade.setText(String.format(Locale.US,"%.2f",ListaComprasSupermecado.getQtdUnidadeProduto()));
         holder.textViewValorUnidade.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorUnidadeProduto()));
         holder.textViewTotal.setText(String.format("R$ %.2f", ListaComprasSupermecado.getValorQdtxUndProduto()));
 
-
-
-
-
         holder.bind(ListaComprasSupermecado, position, onItemClickListener, onItemLongClickListener);
 
     }
-
 
     @Override
     public int getItemCount() {
@@ -87,8 +80,6 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
         notifyItemInserted(listaProdutos.size() - 1); // Notifica que um novo item foi inserido
 
     }
-
-
 
     // Classe ViewHolder para associar os componentes do layout com o Adapter
     public static class ProdutoViewHolder extends RecyclerView.ViewHolder {

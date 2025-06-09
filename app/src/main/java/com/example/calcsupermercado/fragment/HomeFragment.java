@@ -69,6 +69,8 @@ public class HomeFragment extends Fragment    {
     private List<ListaComprasSupermecado> produtos = new ArrayList<>(); // Inicializando a lista de produtos
     private ProdutoAdapter produtoAdapter; // Adapter para o RecyclerView
 
+    private ArrayAdapter<String> produtoAdapterNomes;  // Adapter global para o spinnerNomes
+
 
     private HashMap<String, ArrayList<NomeProduto>> categoryMap;
 
@@ -80,6 +82,12 @@ public class HomeFragment extends Fragment    {
     private static final String KEY_PRODUTOS = "produtos";
     private boolean isAscending = true;  // Para alternar entre A-Z e Z-A
 
+    private boolean showingCategories = true;
+
+    private String categoriaSelecionada;
+   private  ArrayList<NomeProduto> produtosCategoria;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflando o layout usando DataBinding
@@ -89,91 +97,102 @@ public class HomeFragment extends Fragment    {
 
         // Recuperar lista de produtos do SharedPreferences
         recuperarProdutos();
+//        listaSpiner = new ArrayList<>();
+
+
+        // Inicializa o HashMap e a lista de categorias
+        categoryMap = new HashMap<>();
         listaSpiner = new ArrayList<>();
 
         // Receber o HashMap ou a lista de produtos que foi passada para o fragmento
         if (getArguments() != null) {
             if (getArguments().containsKey("categoryMap")) {
                 categoryMap = (HashMap<String, ArrayList<NomeProduto>>) getArguments().getSerializable("categoryMap");
-                // Adicionar nomes das categorias no listaSpiner
-                listaSpiner.addAll(categoryMap.keySet());
-            } else if (getArguments().containsKey("listaProdutos")) {
-               // listaProdutos = getArguments().getParcelableArrayList("listaProdutos");
             }
         }
 
+        // Lista de categorias
+        final List<String> listaCategorias = new ArrayList<>();
+        listaCategorias.add("Escolha uma Categoria");
+        listaCategorias.addAll(categoryMap.keySet());
 
-        Collections.sort(listaSpiner);
+       // Collections.sort(listaSpiner);
 
         // Adicionar "Selecione a categoria" como o primeiro item do Spinner
-        listaSpiner.add(0, "Selecione a categoria");
+      //  listaSpiner.add(0, "Selecione a categoria");
 
-// Configurar o ArrayAdapter inicial para exibir "Selecione a categoria" e as categorias no Spinner
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listaSpiner);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.spinnerNomes.setAdapter(adapter);
+        // Configurar o ArrayAdapter inicial para exibir "Selecione a categoria" e as categorias no Spinner
+        ArrayAdapter<String> categoriaAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listaCategorias);
+        categoriaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerCategoria.setAdapter(categoriaAdapter);
 
-// Listener para seleção de itens do Spinner
-        binding.spinnerNomes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        // Esconde o segundo spinner até escolher a categoria
+        binding.nomeMenu.setVisibility(View.GONE);
+
+        // Listener para seleção de itens do Spinner
+        // Listener do Spinner de Categoria
+        binding.spinnerCategoria.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedText = listaSpiner.get(position);
-
-                if (selectedText.equals("Selecione a categoria")) {
-                    // Se o usuário selecionou "Selecione a categoria", não fazer nada
+                 categoriaSelecionada = listaCategorias.get(position);
+                if (categoriaSelecionada.equals("Escolha uma Categoria")) {
+                    // Esconde o spinner de produtos
+                    binding.nomeMenu.setVisibility(View.GONE);
                     return;
                 }
 
-                if (selectedText.equals("Voltar para a lista de categorias")) {
-                    // Se o usuário selecionou "Voltar para a lista de categorias"
-                    // Limpar lista e recarregar as categorias no Spinner
-                    listaSpiner.clear();
-                    listaSpiner.add(0, "Selecione a categoria");  // Adiciona "Selecione a categoria" como o primeiro item
-                    listaSpiner.addAll(categoryMap.keySet());      // Adiciona todas as categorias do categoryMap
+                // Mostra o spinner de nomes (produtos)
+                binding.nomeMenu.setVisibility(View.VISIBLE);
 
-                    // Notificar o adapter para atualizar o Spinner com a lista de categorias
-                    adapter.notifyDataSetChanged();
+                // Carrega produtos da categoria
+                produtosCategoria = categoryMap.get(categoriaSelecionada);
+                listaSpiner.clear();
 
-                    // Define a seleção no item "Selecione a categoria" para evitar re-executar o listener imediatamente
-                    binding.spinnerNomes.setSelection(0);
-                } else {
-                    // Carregar os produtos da categoria selecionada
-                    ArrayList<NomeProduto> produtosCategoria = categoryMap.get(selectedText);
-
-                    if (produtosCategoria != null && !produtosCategoria.isEmpty()) {
-                        // Limpar a lista do Spinner e adicionar "Voltar para a lista de categorias" como o primeiro item
-                        listaSpiner.clear();
-                        listaSpiner.add(0, "Voltar para a lista de categorias");
-
-                        // Adicionar os produtos da categoria
-                        for (NomeProduto produto : produtosCategoria) {
-                            listaSpiner.add(produto.getNameProduct());  // Assumindo que NomeProduto tem um método getNome()
-                        }
-
-                        // Notificar o adapter para atualizar o Spinner com os itens da categoria
-                        adapter.notifyDataSetChanged();
+                if (produtosCategoria != null) {
+                    for (NomeProduto produto : produtosCategoria) {
+                        listaSpiner.add(produto.getNameProduct());
                     }
                 }
+
+                produtoAdapterNomes = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listaSpiner);
+                produtoAdapterNomes.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                binding.spinnerNomes.setAdapter(produtoAdapterNomes);
+
+                // Define ação para selecionar produto
+                binding.spinnerNomes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        nomeProduto = listaSpiner.get(position);
+                        Log.d("Produto", "Produto selecionado: " + nomeProduto);
+                        // Aqui você pode atualizar outras partes da UI ou lógica
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Nenhuma ação necessária aqui
             }
         });
+
+
 
 
         // Botão de ordenação ao lado do Spinner
         binding.btnSort.setOnClickListener(v -> {
             if (isAscending) {
-                // Ordenar de A a Z
                 Collections.sort(listaSpiner);
             } else {
-                // Ordenar de Z a A
                 Collections.sort(listaSpiner, Collections.reverseOrder());
             }
-            isAscending = !isAscending;  // Alterna entre A-Z e Z-A
-            adapter.notifyDataSetChanged();  // Atualiza o Spinner
+            isAscending = !isAscending;
+
+            if (produtoAdapterNomes != null) {
+                produtoAdapterNomes.notifyDataSetChanged();
+            }
         });
 
 
@@ -326,15 +345,94 @@ public class HomeFragment extends Fragment    {
         return binding.getRoot();
     }//fim do método oncreate
 
+    private void adicionarProduto() {
+        if(categoriaSelecionada.equals("Escolha uma Categoria")){
+            Toast.makeText(getContext(), "Por favor, Selecione uma Categoria.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(produtosCategoria.size() == 0){
+            Toast.makeText(getContext(), "Por favor, Adicione um Item a Categoria.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Verificar se a quantidade foi preenchida e é maior que 0
+        if (quantidadeProtudo == 0 || quantidadeProtudo <= 0) {
+            Toast.makeText(getContext(), "Por favor, informe uma quantidade válida", Toast.LENGTH_SHORT).show();
+            binding.editTextQuantity.requestFocus(); // Define o foco no campo de quantidade
+            return; // Interrompe a execução se a quantidade não for válida
+        }
+
+        // Verificar se o valor unitário foi preenchido e é maior que 0
+        if (valorUnidadeProduto <= 0) {
+            Toast.makeText(getContext(), "Por favor, informe o valor da unidade do produto ", Toast.LENGTH_SHORT).show();
+            binding.editTextUnitValue.requestFocus(); // Define o foco no campo de valor unitário
+            return; // Interrompe a execução se o valor unitário não for válido
+        }
+
+        // Adicionar um novo produto à lista
+        ListaComprasSupermecado novoProduto = new ListaComprasSupermecado(nomeProduto, quantidadeProtudo, valorUnidadeProduto, valorQdtProduto);
+        // produtos.add(novoProduto);
+
+        if (produtos.contains(novoProduto)) {
+            Toast.makeText(getContext(), "Este produto já está na lista.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        produtos.add(0, novoProduto);  // Adiciona o item no topo da lista
+        produtoAdapter.notifyItemInserted(0);    // Notifica o adapter da inserção
+       //  binding.rvListaProdutos.scrollToPosition(0); // Faz scroll para o topo, caso necessário
+
+        produtoAdapter.notifyDataSetChanged();
+
+        //recupera o valor do total do sharedPreference e ao adicionar o item já soma com o valor total desse item.
+        valorQtdTotalPrudutos += valorQdtProduto;
+        quantidadeProdutosLista += 1;
+        binding.textViewTotal.setText(String.format("Total: R$ %.2f", valorQtdTotalPrudutos));
+        binding.tvQantidadeProdutos.setText("Qtd Produtos: " + quantidadeProdutosLista);
+
+        Toast.makeText(getContext(), "Produto adicionado na lista de Compras!", Toast.LENGTH_SHORT).show();
+
+        // Limpar os campos de quantidade, valor da unidade e o total do produto
+        binding.editTextQuantity.setText(""); // Limpa o campo de quantidade
+        binding.editTextUnitValue.setText(""); // Limpa o campo de valor unitário
+        binding.textViewTotalValue.setText("R$ 0,00"); // Reseta o valor total do produto
+
+        // Salvar a lista de produtos no SharedPreferences
+        salvarProdutos();
+
+    }
+
     private void visualizarPDF() {
         // Implemente a lógica para visualizar o PDF
         Toast.makeText(getContext(), "Visualizar em PDF", Toast.LENGTH_SHORT).show();
     }
 
     private void compartilhar() {
-        // Implemente a lógica para compartilhar
-        Toast.makeText(getContext(), "Compartilhar", Toast.LENGTH_SHORT).show();
+        File file = new File(requireContext().getExternalFilesDir(null), "lista_compras.pdf");
+
+        if (!file.exists()) {
+            Toast.makeText(getContext(), "Arquivo PDF não encontrado para compartilhar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Obter URI do arquivo usando FileProvider
+        Uri uriPDF = FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().getPackageName() + ".fileprovider",
+                file
+        );
+
+        // Criar a intent de compartilhamento
+        Intent compartilharIntent = new Intent(Intent.ACTION_SEND);
+        compartilharIntent.setType("application/pdf");
+        compartilharIntent.putExtra(Intent.EXTRA_STREAM, uriPDF);
+        compartilharIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Permitir acesso temporário
+
+        // Iniciar o seletor de apps
+        startActivity(Intent.createChooser(compartilharIntent, "Compartilhar PDF usando"));
     }
+
 
 
     // Método para abrir o dialog de editar produto
@@ -497,8 +595,6 @@ public class HomeFragment extends Fragment    {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
 
-
-
         String json = gson.toJson(produtos);
         editor.putString(KEY_PRODUTOS, json);
 
@@ -506,8 +602,6 @@ public class HomeFragment extends Fragment    {
         editor.putInt("quantidade_total_produtos", produtos.size());
         // Salvar o valor total de todos os produtos
         editor.putFloat("valor_total_produtos", (float) valorQtdTotalPrudutos); // Converter para float se necessário
-
-
 
         editor.apply();
 
@@ -524,58 +618,7 @@ public class HomeFragment extends Fragment    {
         }
     }
 
-    private void adicionarProduto() {
 
-        // Verificar se a quantidade foi preenchida e é maior que 0
-        if (quantidadeProtudo == 0 || quantidadeProtudo <= 0) {
-            Toast.makeText(getContext(), "Por favor, informe uma quantidade válida", Toast.LENGTH_SHORT).show();
-            binding.editTextQuantity.requestFocus(); // Define o foco no campo de quantidade
-            return; // Interrompe a execução se a quantidade não for válida
-        }
-
-        // Verificar se o valor unitário foi preenchido e é maior que 0
-        if (valorUnidadeProduto <= 0) {
-            Toast.makeText(getContext(), "Por favor, informe o valor da unidade do produto ", Toast.LENGTH_SHORT).show();
-            binding.editTextUnitValue.requestFocus(); // Define o foco no campo de valor unitário
-            return; // Interrompe a execução se o valor unitário não for válido
-        }
-
-
-            // Adicionar um novo produto à lista
-            ListaComprasSupermecado novoProduto = new ListaComprasSupermecado(nomeProduto, quantidadeProtudo, valorUnidadeProduto, valorQdtProduto);
-           // produtos.add(novoProduto);
-
-            // Passar o novo produto para o adapter
-            //produtoAdapter.addProduto(novoProduto);
-
-        produtos.add(0, novoProduto);  // Adiciona o item no topo da lista
-        produtoAdapter.notifyItemInserted(0);    // Notifica o adapter da inserção
-       // binding.rvListaProdutos.scrollToPosition(0); // Faz scroll para o topo, caso necessário
-
-
-          //recupera o valor do total do sharedPreference e ao adicionar o item já soma com o valor total desse item.
-        valorQtdTotalPrudutos += valorQdtProduto;
-        quantidadeProdutosLista += 1;
-        binding.textViewTotal.setText(String.format("Total: R$ %.2f", valorQtdTotalPrudutos));
-        binding.tvQantidadeProdutos.setText("Qtd Produtos: " + quantidadeProdutosLista);
-
-
-        Toast.makeText(getContext(), "Produto adicionado na lista de Compras!", Toast.LENGTH_SHORT).show();
-
-
-        // Limpar os campos de quantidade, valor da unidade e o total do produto
-        binding.editTextQuantity.setText(""); // Limpa o campo de quantidade
-        binding.editTextUnitValue.setText(""); // Limpa o campo de valor unitário
-        binding.textViewTotalValue.setText("R$ 0,00"); // Reseta o valor total do produto
-
-//        quantidadeProtudo = 0;
-//        valorUnidadeProduto = 0.0;
-//        valorQdtProduto = 0.0;
-
-        // Salvar a lista de produtos no SharedPreferences
-        salvarProdutos();
-
-    }
 
     private void removerListaItensAtual(){
         SharedPreferences sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -764,7 +807,12 @@ public class HomeFragment extends Fragment    {
             Intent intent = new Intent(Intent.ACTION_VIEW);
 
             // Obtém o URI do arquivo usando FileProvider para Android 7.0+
-            Uri uri = FileProvider.getUriForFile(requireContext(), requireContext().getPackageName() + ".provider", file);
+            Uri uri = FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",  // Aqui está a correção
+                    file
+            );
+
 
             // Define o tipo de conteúdo como PDF
             intent.setDataAndType(uri, "application/pdf");

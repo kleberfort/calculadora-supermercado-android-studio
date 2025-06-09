@@ -50,8 +50,7 @@ public class ListaCadastroAdapter extends RecyclerView.Adapter<ListaCadastroAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         NomeProduto product = productList.get(position);
-
-        holder.bind(product, position, onItemClickListener, onItemLongClickListener);
+        holder.bind(product, onItemClickListener, onItemLongClickListener); // <-- sem "position"
     }
 
     // Método para atualizar a lista filtrada
@@ -76,18 +75,28 @@ public class ListaCadastroAdapter extends RecyclerView.Adapter<ListaCadastroAdap
             nomeProdutoTextView = itemView.findViewById(R.id.tv_nome_produto);
         }
 
-        public void bind(NomeProduto product, int position, OnItemClickListener clickListener,
+        public void bind(NomeProduto product, OnItemClickListener clickListener,
                          OnItemLongClickListener longClickListener) {
             nomeProdutoTextView.setText(product.getNameProduct());
 
-            itemView.setOnClickListener(v -> clickListener.onItemClick(position));
+            itemView.setOnClickListener(v -> {
+                int pos = getBindingAdapterPosition(); // ou getBindingAdapterPosition() se suportado
+                if (pos != RecyclerView.NO_POSITION && clickListener != null) {
+                    clickListener.onItemClick(pos);
+                }
+            });
 
-            // Detectar clique longo
             itemView.setOnLongClickListener(v -> {
-                longClickListener.onItemLongClick(position);
+                int pos = getBindingAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION && longClickListener != null) {
+                    longClickListener.onItemLongClick(pos);
+                }
                 return true;
             });
         }
+
+
+
     }
 
 
